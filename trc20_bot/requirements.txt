@@ -1,0 +1,7 @@
+python-telegram-bot==21.*
+sqlalchemy[asyncio]==2.*
+aiosqlite
+asyncpg
+httpx
+apscheduler>=3.10,<4
+python-dotenv

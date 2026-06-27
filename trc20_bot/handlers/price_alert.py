@@ -1,0 +1,79 @@
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ContextTypes
+
+from db import crud
+from db.engine import get_session
+from services import price
+from utils.formatter import escape_md
+
+
+async def show_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    data = await price.get_usdt_price()
+    if data is None:
+        target = update.message or update.callback_query.message
+        await target.reply_text("❌ 시세 조회에 실패했습니다\\.", parse_mode="MarkdownV2")
+        return
+
+    telegram_id = update.effective_user.id
+    async with get_session() as session:
+        user = await crud.get_or_create_user(session, telegram_id, update.effective_user.username)
+        alert_state = "🟢 활성" if user.price_alert_on else "🔴 비활성"
+
+    change = data["usd_24h_change"]
+    change_str = f"+{change:.2f}" if change >= 0 else f"{change:.2f}"
+
+    lines = [
+        "📈 *USDT 현재 시세*",
+        "━━━━━━━━━━━━━━━━━━━━",
+        "",
+        f"💵 USD  *${data['usd']:.3f}*",
+        f"🇰🇷 KRW  *₩{data['krw']:,.1f}*",
+        "",
+        f"📊 24h 변동: _{escape_md(change_str)}%_",
+        "",
+        "━━━━━━━━━━━━━━━━━━━━",
+        f"🔔 시세 알림: *{alert_state}*",
+    ]
+
+    keyboard = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("🟢 목표가 알림 설정", callback_data="price:set_target"), InlineKeyboardButton("🔵 1시간 리포트 ON", callback_data="price:report_on")],
+            [InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")],
+        ]
+    )
+    target = update.message or update.callback_query.message
+    await target.reply_text("\n".join(lines), parse_mode="MarkdownV2", reply_markup=keyboard)
+
+
+async def set_price_target(update: Update, context: ContextTypes.DEFAULT_TYPE, target_price: float) -> None:
+    telegram_id = update.effective_user.id
+    async with get_session() as session:
+        user = await crud.get_or_create_user(session, telegram_id, update.effective_user.username)
+        user.price_alert_on = True
+        user.price_alert_target = target_price
+        await session.commit()
+
+    message_target = update.message or update.callback_query.message
+    await message_target.reply_text(f"🟢 목표가 알림이 설정되었습니다: ${target_price}", parse_mode="MarkdownV2")
+
+
+async def check_price_targets(bot) -> None:
+    data = await price.get_usdt_price()
+    if data is None:
+        return
+
+    from sqlalchemy import select
+
+    from db.models import User
+
+    async with get_session() as session:
+        result = await session.execute(select(User).where(User.price_alert_on.is_(True)))
+        for user in result.scalars().all():
+            if user.price_alert_target and data["usd"] >= float(user.price_alert_target):
+                await bot.send_message(
+                    chat_id=user.telegram_id,
+                    text=f"🔔 USDT가 목표가 ${user.price_alert_target}에 도달했습니다\\. 현재가: ${data['usd']}",
+                    parse_mode="MarkdownV2",
+                )
+                user.price_alert_on = False
+        await session.commit()
