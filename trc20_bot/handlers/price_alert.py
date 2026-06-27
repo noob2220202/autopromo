@@ -48,7 +48,7 @@ async def show_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 async def prompt_set_target(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     context.user_data["awaiting"] = "price_target"
-    await respond(update, "🟢 알림을 받을 목표가\\(USD\\)를 숫자로 입력해주세요\\.")
+    await respond(update, "🟢 *목표가 알림*\n\n알림을 받을 목표가\\(USD\\)를 숫자로 입력해주세요\\.\n_예: 1\\.01_")
 
 
 async def toggle_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -60,7 +60,7 @@ async def toggle_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await session.commit()
 
     state_str = "켜졌습니다" if new_state else "꺼졌습니다"
-    await respond(update, f"🔵 1시간 리포트가 {state_str}\\.")
+    await respond(update, f"🔵 *1시간 리포트가 {state_str}\\.*\n_매시간 USDT 시세를 알려드려요\\._" if new_state else f"🔵 *1시간 리포트가 {state_str}\\.*")
 
 
 async def send_hourly_reports(bot) -> None:
@@ -102,7 +102,7 @@ async def set_price_target(update: Update, context: ContextTypes.DEFAULT_TYPE, t
         user.price_alert_target = target_price
         await session.commit()
 
-    await respond(update, f"🟢 목표가 알림이 설정되었습니다: ${escape_md(str(target_price))}")
+    await respond(update, f"🟢 *목표가 알림이 설정되었습니다*\n${escape_md(str(target_price))}에 도달하면 알려드릴게요\\.")
 
 
 async def check_price_targets(bot) -> None:

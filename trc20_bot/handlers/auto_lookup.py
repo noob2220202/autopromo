@@ -104,16 +104,17 @@ async def _handle_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE, tx
             result = await verify_and_confirm(session, tx_id, telegram_id)
         except PaymentVerificationError as exc:
             await update.message.reply_text(
-                f"> ❌ *결제 확인 실패*\n>\n> {escape_md(str(exc))}",
+                f"> ❌ *결제 확인 실패*\n>\n> {escape_md(str(exc))}\n\n_TX 해시를 다시 확인한 후 입력해주세요\\._",
                 parse_mode="MarkdownV2",
             )
             return
 
     await update.message.reply_text(
         "✅ *Pro 플랜 활성화 완료\\!*\n━━━━━━━━━━━━━━━━━\n\n"
-        f"🎉 업그레이드를 축하드립니다\\!\n\n"
-        f"👑 *현재 플랜:* Pro\n"
-        f"📍 *주소 한도:* 최대 5개\n"
-        f"🔗 확인된 TX: `{result['tx_id']}`",
+        "🎉 업그레이드를 축하드립니다\\!\n\n"
+        "👑 *현재 플랜:* Pro\n"
+        "📍 *주소 한도:* 최대 5개\n"
+        f"🔗 확인된 TX: `{result['tx_id']}`\n\n"
+        "_/start 로 메뉴를 다시 열어보세요\\._",
         parse_mode="MarkdownV2",
     )

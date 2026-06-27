@@ -27,6 +27,7 @@ async def show_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "💼 *내 등록 지갑*",
         "━━━━━━━━━━━━━━━━━",
         f"👤 플랜: *{plan.value.capitalize()}* \\| 사용 {len(wallets)} / {limit}",
+        "_등록된 지갑이 없습니다\\. 아래에서 추가해보세요\\._" if not wallets else "",
         "",
     ]
     for idx, wallet in enumerate(wallets, start=1):
@@ -83,7 +84,7 @@ async def add_wallet_from_address(update: Update, context: ContextTypes.DEFAULT_
 
         await crud.add_wallet(session, telegram_id, address, label=None)
 
-    await respond(update, f"🟢 지갑이 등록되었습니다: `{address}`")
+    await respond(update, f"🟢 *지갑이 등록되었습니다*\n`{address}`\n\n_이제부터 이 주소의 입출금을 자동으로 알려드려요\\._")
 
 
 async def delete_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_id: int) -> None:
@@ -92,7 +93,7 @@ async def delete_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
         deleted = await crud.delete_wallet(session, wallet_id, telegram_id)
 
     if deleted:
-        await respond(update, "🔴 지갑이 삭제되었습니다\\.")
+        await respond(update, "🔴 *지갑이 삭제되었습니다\\.*")
     else:
         await respond(update, "❌ 삭제할 지갑을 찾을 수 없습니다\\.")
 
@@ -100,8 +101,9 @@ async def delete_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
 async def prompt_add_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await respond(
         update,
-        "🟢 등록할 트론\\(Tron\\) 지갑 주소를 채팅창에 입력해주세요\\.\n"
-        "주소를 보내면 잔액 조회 결과와 함께 *\\[🟢 이 주소 등록\\]* 버튼이 나타납니다\\.",
+        "🟢 *지갑 추가*\n\n"
+        "등록할 트론\\(Tron\\) 지갑 주소를 채팅창에 입력해주세요\\.\n"
+        "_주소를 보내면 잔액 조회 결과와 함께 \\[🟢 이 주소 등록\\] 버튼이 나타납니다\\._",
     )
 
 
@@ -122,8 +124,9 @@ async def wallet_detail(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
         f"🔵 *{escape_md(label)} 상세정보*\n━━━━━━━━━━━━━━━━━\n\n"
         f"📍 `{wallet.address}`\n"
         f"💰 *잔액: {escape_md(format_amount(balance))} USDT*\n"
-        f"{status}\n"
-        "━━━━━━━━━━━━━━━━━"
+        f"{status}\n\n"
+        "━━━━━━━━━━━━━━━━━\n"
+        "_TronScan에서 전체 거래내역을 확인할 수 있어요\\._"
     )
     keyboard = InlineKeyboardMarkup(
         [

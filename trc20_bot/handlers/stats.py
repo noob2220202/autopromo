@@ -24,7 +24,7 @@ async def today_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     async with get_session() as session:
         wallet_ids = await _wallet_ids(session, telegram_id)
         if not wallet_ids:
-            await respond(update, "등록된 지갑이 없습니다\\.")
+            await respond(update, "📊 *오늘 통계*\n\n_등록된 지갑이 없습니다\\. 먼저 지갑을 등록해주세요\\._")
             return
 
         result = await session.execute(
@@ -84,7 +84,7 @@ async def monthly_stats(update: Update, context: ContextTypes.DEFAULT_TYPE, year
     async with get_session() as session:
         wallet_ids = await _wallet_ids(session, telegram_id)
         if not wallet_ids:
-            await respond(update, "등록된 지갑이 없습니다\\.")
+            await respond(update, "📅 *월간 통계*\n\n_등록된 지갑이 없습니다\\. 먼저 지갑을 등록해주세요\\._")
             return
 
         result = await session.execute(
@@ -139,7 +139,7 @@ async def transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE
     async with get_session() as session:
         wallet_ids = await _wallet_ids(session, telegram_id)
         if not wallet_ids:
-            await respond(update, "등록된 지갑이 없습니다\\.")
+            await respond(update, "📋 *최근 거래내역*\n\n_등록된 지갑이 없습니다\\. 먼저 지갑을 등록해주세요\\._")
             return
 
         result = await session.execute(
@@ -152,14 +152,14 @@ async def transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     lines = ["📋 *최근 거래내역*", "━━━━━━━━━━━━━━━━━", ""]
     if not txs:
-        lines.append("거래 내역이 없습니다\\.")
+        lines.append("_아직 거래 내역이 없습니다\\._")
     for tx in txs:
         emoji = "🟢" if tx.direction == TxDirection.in_ else "🔴"
         sign = "\\+" if tx.direction == TxDirection.in_ else "\\-"
         lines.append(f"{emoji} *{sign}{escape_md(format_amount(float(tx.amount_usdt)))} USDT*")
         lines.append(f"   _{escape_md(tx.block_timestamp.strftime('%Y-%m-%d %H:%M'))}_")
         if tx.is_scam_token:
-            lines.append("   ⚠️ 스캠 토큰 의심")
+            lines.append("   ⚠️ *스캠 토큰 의심*")
         lines.append("")
     lines.append("━━━━━━━━━━━━━━━━━")
 

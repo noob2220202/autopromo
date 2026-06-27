@@ -102,7 +102,7 @@ async def grant_pro(update: Update, context: ContextTypes.DEFAULT_TYPE, telegram
         user.plan = PlanType.pro
         user.plan_expires_at = datetime.now(timezone.utc) + timedelta(days=PRO_PLAN_DAYS)
         await session.commit()
-    await _reply(update, f"👑 유저 `{telegram_id}`에게 Pro 플랜을 부여했습니다\\.")
+    await _reply(update, f"👑 *Pro 플랜 부여 완료*\n유저 `{telegram_id}`가 이제 Pro 플랜입니다\\.")
 
 
 async def demote_to_free(update: Update, context: ContextTypes.DEFAULT_TYPE, telegram_id: int) -> None:
@@ -116,7 +116,7 @@ async def demote_to_free(update: Update, context: ContextTypes.DEFAULT_TYPE, tel
         user.plan = PlanType.free
         user.plan_expires_at = None
         await session.commit()
-    await _reply(update, f"🔴 유저 `{telegram_id}`를 Free로 강등했습니다\\.")
+    await _reply(update, f"🔴 *Free로 강등 완료*\n유저 `{telegram_id}`가 Free 플랜으로 변경되었습니다\\.")
 
 
 async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE, telegram_id: int) -> None:
@@ -129,7 +129,7 @@ async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE, telegram_
             return
         user.is_banned = True
         await session.commit()
-    await _reply(update, f"🚫 유저 `{telegram_id}`를 차단했습니다\\.")
+    await _reply(update, f"🚫 *차단 완료*\n유저 `{telegram_id}`의 봇 이용이 차단되었습니다\\.")
 
 
 async def list_scam_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -207,7 +207,7 @@ async def toggle_halt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not is_admin(update.effective_user.id):
         return
     runtime_state.set_halted(not runtime_state.is_halted())
-    state_str = "🔴 긴급 정지되었습니다" if runtime_state.is_halted() else "🟢 정상 운영으로 복귀했습니다"
+    state_str = "🔴 *긴급 정지*되었습니다" if runtime_state.is_halted() else "🟢 *정상 운영*으로 복귀했습니다"
     await _reply(update, f"봇이 {state_str}\\.")
 
 
@@ -215,27 +215,27 @@ async def prompt_scam_add(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not is_admin(update.effective_user.id):
         return
     context.user_data["awaiting"] = "scam_add"
-    await _reply(update, "🟢 스캠으로 등록할 컨트랙트 주소를 입력해주세요\\.")
+    await _reply(update, "🟢 *스캠 토큰 추가*\n\n등록할 컨트랙트 주소를 입력해주세요\\.")
 
 
 async def prompt_scam_delete(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not is_admin(update.effective_user.id):
         return
     context.user_data["awaiting"] = "scam_delete"
-    await _reply(update, "🔴 삭제할 스캠 컨트랙트 주소를 입력해주세요\\.")
+    await _reply(update, "🔴 *스캠 토큰 삭제*\n\n삭제할 컨트랙트 주소를 입력해주세요\\.")
 
 
 async def sync_scam_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not is_admin(update.effective_user.id):
         return
-    await _reply(update, "🔄 TronScan 동기화는 현재 준비 중입니다\\. 수동 추가/삭제를 이용해주세요\\.")
+    await _reply(update, "🔄 *TronScan 동기화*\n\n_현재 준비 중입니다\\. 수동 추가/삭제를 이용해주세요\\._")
 
 
 async def prompt_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not is_admin(update.effective_user.id):
         return
     context.user_data["awaiting"] = "broadcast"
-    await _reply(update, "📢 전체 유저에게 발송할 공지 내용을 입력해주세요\\.")
+    await _reply(update, "📢 *공지 발송*\n\n전체 유저에게 발송할 내용을 입력해주세요\\.")
 
 
 async def add_scam_token(update: Update, context: ContextTypes.DEFAULT_TYPE, contract_address: str, reason: str | None = None) -> None:
@@ -248,11 +248,11 @@ async def add_scam_token(update: Update, context: ContextTypes.DEFAULT_TYPE, con
     async with get_session() as session:
         existing = await session.execute(select(ScamToken).where(ScamToken.contract_address == contract_address))
         if existing.scalar_one_or_none() is not None:
-            await _reply(update, "이미 등록된 스캠 토큰입니다\\.")
+            await _reply(update, "_이미 등록된 스캠 토큰입니다\\._")
             return
         session.add(ScamToken(contract_address=contract_address, source="manual", reason=reason))
         await session.commit()
-    await _reply(update, f"🟢 스캠 토큰이 등록되었습니다: `{contract_address}`")
+    await _reply(update, f"🟢 *스캠 토큰이 등록되었습니다*\n`{contract_address}`")
 
 
 async def delete_scam_token(update: Update, context: ContextTypes.DEFAULT_TYPE, contract_address: str) -> None:
@@ -266,7 +266,7 @@ async def delete_scam_token(update: Update, context: ContextTypes.DEFAULT_TYPE, 
             return
         await session.delete(token)
         await session.commit()
-    await _reply(update, f"🔴 스캠 토큰이 삭제되었습니다: `{contract_address}`")
+    await _reply(update, f"🔴 *스캠 토큰이 삭제되었습니다*\n`{contract_address}`")
 
 
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, target: str = "all") -> None:
@@ -287,7 +287,7 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE, text: st
             sent += 1
         except Exception:
             continue
-    await _reply(update, f"📢 공지를 {sent}명에게 발송했습니다\\.")
+    await _reply(update, f"📢 *공지 발송 완료*\n총 *{sent}명*에게 전달했습니다\\.")
 
 
 async def full_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

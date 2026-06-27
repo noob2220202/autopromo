@@ -6,9 +6,9 @@ from db.engine import get_session
 from db import crud
 
 USER_MENU_TEXT = (
-    "🤖 *TRC20 USDT 봇에 오신 걸 환영합니다\\!*\n\n"
-    "주소를 채팅창에 바로 입력하면 즉시 조회할 수 있어요\\.\n"
-    "아래 메뉴에서 원하는 기능을 선택하세요\\."
+    "🤖 *TRC20 USDT 모니터링 봇*\n\n"
+    "지갑 주소를 채팅창에 입력하면 잔액과 거래내역을 *바로* 보여드려요\\.\n"
+    "_아래 메뉴에서 원하는 기능을 선택해주세요\\._"
 )
 
 USER_MENU_KEYBOARD = InlineKeyboardMarkup(
@@ -38,7 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if telegram_id in ADMIN_IDS:
         await update.message.reply_text(
-            "👑 *관리자 패널*\n━━━━━━━━━━━━━━━━━",
+            "👑 *관리자 패널*\n━━━━━━━━━━━━━━━━━\n_아래에서 관리 기능을 선택하세요\\._",
             parse_mode="MarkdownV2",
             reply_markup=ADMIN_MENU_KEYBOARD,
         )

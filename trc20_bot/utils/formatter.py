@@ -59,6 +59,8 @@ def wallet_summary(address: str, balance: float, transactions: list[dict]) -> st
         f"📋 *최근 거래 \\({len(transactions)}건\\)*",
         "",
     ]
+    if not transactions:
+        lines.append("_최근 거래 내역이 없습니다\\._")
     for tx in transactions:
         emoji = "🟢" if tx["direction"] == "in" else "🔴"
         sign_label = "입금" if tx["direction"] == "in" else "출금"

@@ -28,16 +28,16 @@ async def show_alerts_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     if not wallets:
         await respond(
             update,
-            "🔔 *알림 설정*\n━━━━━━━━━━━━━━━━━\n\n등록된 지갑이 없습니다\\. 먼저 지갑을 등록해주세요\\.",
+            "🔔 *알림 설정*\n━━━━━━━━━━━━━━━━━\n\n_등록된 지갑이 없습니다\\. 먼저 지갑을 등록해주세요\\._",
         )
         return
 
-    lines = ["🔔 *알림 설정*", "━━━━━━━━━━━━━━━━━", ""]
+    lines = ["🔔 *알림 설정*", "━━━━━━━━━━━━━━━━━", "", "_지갑별로 입출금 알림을 켜고 끌 수 있어요\\._", ""]
     buttons = []
     for idx, wallet in enumerate(wallets, start=1):
         label = wallet.label or "지갑"
         state = "🟢 활성" if wallet.is_active else "🔴 비활성"
-        lines.append(f"{idx}\\. 🏷️ _{escape_md(label)}_ \\(`{wallet.address}`\\) — {state}")
+        lines.append(f"{idx}\\. 🏷️ *{escape_md(label)}* \\(`{wallet.address}`\\) — {state}")
         toggle_label = "🔴 알림 끄기" if wallet.is_active else "🟢 알림 켜기"
         buttons.append([InlineKeyboardButton(f"{idx}번 {toggle_label}", callback_data=f"alerts:toggle:{wallet.id}")])
     lines.append("━━━━━━━━━━━━━━━━━")
