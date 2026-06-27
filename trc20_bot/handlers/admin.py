@@ -236,7 +236,7 @@ async def full_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         "👥 *유저*\n"
         f"  전체: *{total_users}명*\n"
         f"  오늘 신규: *\\+{new_today}명*\n"
-        f"  Pro: *{pro_users}명* \\({pro_ratio:.1f}%\\)\n\n"
+        f"  Pro: *{pro_users}명* \\({escape_md(f'{pro_ratio:.1f}')}%\\)\n\n"
         "💼 *지갑*\n"
         f"  전체 등록: *{total_wallets}개*\n"
         f"  오늘 알림 발송: *{notif_today}건*\n\n"

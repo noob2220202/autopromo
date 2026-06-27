@@ -21,13 +21,15 @@ async def show_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     change = data["usd_24h_change"]
     change_str = f"+{change:.2f}" if change >= 0 else f"{change:.2f}"
+    usd_str = f"{data['usd']:.3f}"
+    krw_str = f"{data['krw']:,.1f}"
 
     lines = [
         "📈 *USDT 현재 시세*",
         "━━━━━━━━━━━━━━━━━━━━",
         "",
-        f"💵 USD  *${data['usd']:.3f}*",
-        f"🇰🇷 KRW  *₩{data['krw']:,.1f}*",
+        f"💵 USD  *${escape_md(usd_str)}*",
+        f"🇰🇷 KRW  *₩{escape_md(krw_str)}*",
         "",
         f"📊 24h 변동: _{escape_md(change_str)}%_",
         "",
@@ -54,7 +56,9 @@ async def set_price_target(update: Update, context: ContextTypes.DEFAULT_TYPE, t
         await session.commit()
 
     message_target = update.message or update.callback_query.message
-    await message_target.reply_text(f"🟢 목표가 알림이 설정되었습니다: ${target_price}", parse_mode="MarkdownV2")
+    await message_target.reply_text(
+        f"🟢 목표가 알림이 설정되었습니다: ${escape_md(str(target_price))}", parse_mode="MarkdownV2"
+    )
 
 
 async def check_price_targets(bot) -> None:
@@ -70,9 +74,11 @@ async def check_price_targets(bot) -> None:
         result = await session.execute(select(User).where(User.price_alert_on.is_(True)))
         for user in result.scalars().all():
             if user.price_alert_target and data["usd"] >= float(user.price_alert_target):
+                target_str = escape_md(str(user.price_alert_target))
+                current_str = escape_md(str(data["usd"]))
                 await bot.send_message(
                     chat_id=user.telegram_id,
-                    text=f"🔔 USDT가 목표가 ${user.price_alert_target}에 도달했습니다\\. 현재가: ${data['usd']}",
+                    text=f"🔔 USDT가 목표가 ${target_str}에 도달했습니다\\. 현재가: ${current_str}",
                     parse_mode="MarkdownV2",
                 )
                 user.price_alert_on = False
