@@ -47,6 +47,7 @@ class User(Base):
     plan_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     price_alert_on: Mapped[bool] = mapped_column(Boolean, default=False)
     price_alert_target: Mapped[float | None] = mapped_column(Numeric(20, 6), nullable=True)
+    price_report_on: Mapped[bool] = mapped_column(Boolean, default=False)
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

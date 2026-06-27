@@ -14,12 +14,48 @@ from utils.validators import is_tron_address, is_tx_hash
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text.strip()
 
+    awaiting = context.user_data.pop("awaiting", None)
+    if awaiting is not None:
+        await _handle_awaiting(update, context, awaiting, text)
+        return
+
     if is_tx_hash(text):
         await _handle_tx_hash(update, context, text)
         return
 
     if is_tron_address(text):
         await _handle_address(update, context, text)
+        return
+
+
+async def _handle_awaiting(update: Update, context: ContextTypes.DEFAULT_TYPE, awaiting: str, text: str) -> None:
+    from handlers import admin, price_alert
+
+    if awaiting == "price_target":
+        try:
+            target_price = float(text)
+        except ValueError:
+            await update.message.reply_text("❌ 숫자로 입력해주세요\\.", parse_mode="MarkdownV2")
+            return
+        await price_alert.set_price_target(update, context, target_price)
+        return
+
+    if awaiting == "broadcast":
+        await admin.broadcast(update, context, text)
+        return
+
+    if awaiting == "scam_add":
+        if not is_tron_address(text):
+            await update.message.reply_text("❌ 올바른 트론 컨트랙트 주소가 아닙니다\\.", parse_mode="MarkdownV2")
+            return
+        await admin.add_scam_token(update, context, text)
+        return
+
+    if awaiting == "scam_delete":
+        if not is_tron_address(text):
+            await update.message.reply_text("❌ 올바른 트론 컨트랙트 주소가 아닙니다\\.", parse_mode="MarkdownV2")
+            return
+        await admin.delete_scam_token(update, context, text)
         return
 
 

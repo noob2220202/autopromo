@@ -4,9 +4,10 @@ from sqlalchemy import func, select
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
+import runtime_state
 from config import ADMIN_IDS, PRO_PLAN_DAYS
 from db.engine import get_session
-from db.models import PlanPayment, PlanType, ScamToken, Transaction, User, WalletAddress
+from db.models import PlanPayment, PlanPaymentStatus, PlanType, ScamToken, Transaction, User, WalletAddress
 from utils.formatter import escape_md
 from utils.validators import is_tron_address
 
@@ -151,6 +152,90 @@ async def list_scam_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         ]
     )
     await _reply(update, "\n".join(lines), keyboard)
+
+
+async def list_payments(update: Update, context: ContextTypes.DEFAULT_TYPE, limit: int = 15) -> None:
+    if not is_admin(update.effective_user.id):
+        return
+    async with get_session() as session:
+        result = await session.execute(select(PlanPayment).order_by(PlanPayment.created_at.desc()).limit(limit))
+        payments = list(result.scalars().all())
+
+    lines = ["💳 *결제 내역*", "━━━━━━━━━━━━━━━━━━━━", ""]
+    if not payments:
+        lines.append("결제 내역이 없습니다\\.")
+    for payment in payments:
+        status_emoji = {"confirmed": "🟢", "pending": "🟡", "rejected": "🔴"}.get(payment.status.value, "⚪")
+        lines.append(
+            f"{status_emoji} `{payment.telegram_id}` — *{escape_md(f'{float(payment.amount_usdt):.2f}')} USDT*"
+        )
+        lines.append(f"   _{escape_md(payment.created_at.strftime('%Y-%m-%d %H:%M'))}_ — `{payment.tx_id[:16]}…`")
+        lines.append("")
+    lines.append("━━━━━━━━━━━━━━━━━━━━")
+
+    keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("◀ 관리자 메인", callback_data="admin:home")]])
+    await _reply(update, "\n".join(lines), keyboard)
+
+
+async def show_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not is_admin(update.effective_user.id):
+        return
+
+    from config import (
+        OWNER_WALLET_ADDRESS,
+        POLL_INTERVAL_SECONDS,
+        PRICE_CHECK_INTERVAL_SECONDS,
+        PRO_PLAN_USDT_PRICE,
+    )
+
+    halt_state = "🔴 정지됨" if runtime_state.is_halted() else "🟢 정상 운영"
+    text = (
+        "⚙️ *봇 설정*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📡 폴링 주기: *{POLL_INTERVAL_SECONDS}초*\n"
+        f"📈 시세 체크 주기: *{PRICE_CHECK_INTERVAL_SECONDS}초*\n"
+        f"💎 Pro 플랜 가격: *{escape_md(str(PRO_PLAN_USDT_PRICE))} USDT*\n"
+        f"📅 Pro 플랜 기간: *{PRO_PLAN_DAYS}일*\n"
+        f"🏦 오너 지갑: `{OWNER_WALLET_ADDRESS}`\n"
+        f"🚦 봇 상태: *{halt_state}*\n"
+        "━━━━━━━━━━━━━━━━━━━━"
+    )
+    keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("◀ 관리자 메인", callback_data="admin:home")]])
+    await _reply(update, text, keyboard)
+
+
+async def toggle_halt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not is_admin(update.effective_user.id):
+        return
+    runtime_state.set_halted(not runtime_state.is_halted())
+    state_str = "🔴 긴급 정지되었습니다" if runtime_state.is_halted() else "🟢 정상 운영으로 복귀했습니다"
+    await _reply(update, f"봇이 {state_str}\\.")
+
+
+async def prompt_scam_add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not is_admin(update.effective_user.id):
+        return
+    context.user_data["awaiting"] = "scam_add"
+    await _reply(update, "🟢 스캠으로 등록할 컨트랙트 주소를 입력해주세요\\.")
+
+
+async def prompt_scam_delete(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not is_admin(update.effective_user.id):
+        return
+    context.user_data["awaiting"] = "scam_delete"
+    await _reply(update, "🔴 삭제할 스캠 컨트랙트 주소를 입력해주세요\\.")
+
+
+async def sync_scam_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not is_admin(update.effective_user.id):
+        return
+    await _reply(update, "🔄 TronScan 동기화는 현재 준비 중입니다\\. 수동 추가/삭제를 이용해주세요\\.")
+
+
+async def prompt_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not is_admin(update.effective_user.id):
+        return
+    context.user_data["awaiting"] = "broadcast"
+    await _reply(update, "📢 전체 유저에게 발송할 공지 내용을 입력해주세요\\.")
 
 
 async def add_scam_token(update: Update, context: ContextTypes.DEFAULT_TYPE, contract_address: str, reason: str | None = None) -> None:

@@ -99,3 +99,42 @@ async def delete_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
         await target.reply_text("🔴 지갑이 삭제되었습니다\\.", parse_mode="MarkdownV2")
     else:
         await target.reply_text("❌ 삭제할 지갑을 찾을 수 없습니다\\.", parse_mode="MarkdownV2")
+
+
+async def prompt_add_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    target = update.message or update.callback_query.message
+    await target.reply_text(
+        "🟢 등록할 트론\\(Tron\\) 지갑 주소를 채팅창에 입력해주세요\\.\n"
+        "주소를 보내면 잔액 조회 결과와 함께 *\\[🟢 이 주소 등록\\]* 버튼이 나타납니다\\.",
+        parse_mode="MarkdownV2",
+    )
+
+
+async def wallet_detail(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_id: int) -> None:
+    telegram_id = update.effective_user.id
+    async with get_session() as session:
+        wallets = await crud.list_wallets(session, telegram_id)
+    wallet = next((w for w in wallets if w.id == wallet_id), None)
+
+    target = update.message or update.callback_query.message
+    if wallet is None:
+        await target.reply_text("❌ 지갑을 찾을 수 없습니다\\.", parse_mode="MarkdownV2")
+        return
+
+    balance = await trongrid.get_balance(wallet.address)
+    label = wallet.label or "지갑"
+    status = "🟢 알림 활성" if wallet.is_active else "🔴 알림 비활성"
+    text = (
+        f"🔵 *{escape_md(label)} 상세정보*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📍 `{wallet.address}`\n"
+        f"💰 *잔액: {escape_md(format_amount(balance))} USDT*\n"
+        f"{status}\n"
+        "━━━━━━━━━━━━━━━━━━━━"
+    )
+    keyboard = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("🔗 TronScan에서 보기", url=f"https://tronscan.org/#/address/{wallet.address}")],
+            [InlineKeyboardButton("🔴 삭제", callback_data=f"wallet:delete:{wallet.id}"), InlineKeyboardButton("◀ 뒤로", callback_data="menu:wallet")],
+        ]
+    )
+    await target.reply_text(text, parse_mode="MarkdownV2", reply_markup=keyboard)

@@ -47,6 +47,56 @@ async def show_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     await target.reply_text("\n".join(lines), parse_mode="MarkdownV2", reply_markup=keyboard)
 
 
+async def prompt_set_target(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    context.user_data["awaiting"] = "price_target"
+    target = update.message or update.callback_query.message
+    await target.reply_text("🟢 알림을 받을 목표가\\(USD\\)를 숫자로 입력해주세요\\.", parse_mode="MarkdownV2")
+
+
+async def toggle_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    telegram_id = update.effective_user.id
+    async with get_session() as session:
+        user = await crud.get_or_create_user(session, telegram_id, update.effective_user.username)
+        user.price_report_on = not user.price_report_on
+        new_state = user.price_report_on
+        await session.commit()
+
+    target = update.message or update.callback_query.message
+    state_str = "켜졌습니다" if new_state else "꺼졌습니다"
+    await target.reply_text(f"🔵 1시간 리포트가 {state_str}\\.", parse_mode="MarkdownV2")
+
+
+async def send_hourly_reports(bot) -> None:
+    data = await price.get_usdt_price()
+    if data is None:
+        return
+
+    from sqlalchemy import select
+
+    from db.models import User
+
+    change = data["usd_24h_change"]
+    change_str = f"+{change:.2f}" if change >= 0 else f"{change:.2f}"
+    usd_str = f"{data['usd']:.3f}"
+    krw_str = f"{data['krw']:,.1f}"
+    text = (
+        "📈 *1시간 정기 리포트*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"💵 USD  *${escape_md(usd_str)}*\n"
+        f"🇰🇷 KRW  *₩{escape_md(krw_str)}*\n"
+        f"📊 24h 변동: _{escape_md(change_str)}%_"
+    )
+
+    from telegram.error import Forbidden
+
+    async with get_session() as session:
+        result = await session.execute(select(User).where(User.price_report_on.is_(True)))
+        for user in result.scalars().all():
+            try:
+                await bot.send_message(chat_id=user.telegram_id, text=text, parse_mode="MarkdownV2")
+            except Forbidden:
+                pass
+
+
 async def set_price_target(update: Update, context: ContextTypes.DEFAULT_TYPE, target_price: float) -> None:
     telegram_id = update.effective_user.id
     async with get_session() as session:

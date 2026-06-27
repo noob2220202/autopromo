@@ -6,6 +6,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telegram import Bot
 from telegram.error import Forbidden
 
+import runtime_state
 from config import POLL_INTERVAL_SECONDS, PRICE_CHECK_INTERVAL_SECONDS, USDT_CONTRACT
 from db import crud
 from db.engine import get_session
@@ -17,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 async def poll_wallets(bot: Bot) -> None:
+    if runtime_state.is_halted():
+        return
+
     async with get_session() as session:
         wallets = await crud.list_active_wallets(session)
 
@@ -100,10 +104,11 @@ async def check_plan_expirations(bot: Bot) -> None:
 
 
 def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
-    from handlers.price_alert import check_price_targets
+    from handlers.price_alert import check_price_targets, send_hourly_reports
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(poll_wallets, "interval", seconds=POLL_INTERVAL_SECONDS, args=[bot])
     scheduler.add_job(check_plan_expirations, "cron", hour=0, minute=0, args=[bot])
     scheduler.add_job(check_price_targets, "interval", seconds=PRICE_CHECK_INTERVAL_SECONDS, args=[bot])
+    scheduler.add_job(send_hourly_reports, "interval", hours=1, args=[bot])
     return scheduler

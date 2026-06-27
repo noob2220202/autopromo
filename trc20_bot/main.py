@@ -32,20 +32,64 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await price_alert.show_price(update, context)
     elif data == "menu:plan":
         await subscription.show_plan_menu(update, context)
+    elif data == "menu:alerts":
+        await alerts.show_alerts_menu(update, context)
+    elif data == "menu:help":
+        await query.message.reply_text(
+            "❓ *도움말*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+            "📍 트론 주소를 채팅창에 입력하면 잔액/거래내역을 즉시 조회합니다\\.\n"
+            "💼 *내 지갑*에서 알림 받을 주소를 등록하세요\\.\n"
+            "📊 *통계*에서 일별/월별 입출금 현황을 확인하세요\\.\n"
+            "📈 *시세*에서 목표가 알림과 정기 리포트를 설정하세요\\.\n"
+            "💳 *플랜 관리*에서 Pro 플랜으로 업그레이드하세요\\.",
+            parse_mode="MarkdownV2",
+        )
     elif data == "stats:monthly":
         await stats.monthly_stats(update, context)
+    elif data.startswith("stats:monthly:"):
+        year_month = data.split(":", 2)[2]
+        year_str, month_str = year_month.split("-")
+        await stats.monthly_stats(update, context, year=int(year_str), month=int(month_str))
+    elif data == "stats:history":
+        await stats.transaction_history(update, context)
     elif data.startswith("wallet:add:"):
         address = data.split(":", 2)[2]
         await wallet.add_wallet_from_address(update, context, address)
     elif data.startswith("wallet:delete:"):
         wallet_id = int(data.split(":")[2])
         await wallet.delete_wallet(update, context, wallet_id)
+    elif data == "wallet:prompt_add":
+        await wallet.prompt_add_wallet(update, context)
+    elif data.startswith("wallet:detail:"):
+        wallet_id = int(data.split(":")[2])
+        await wallet.wallet_detail(update, context, wallet_id)
+    elif data.startswith("alerts:toggle:"):
+        wallet_id = int(data.split(":")[2])
+        await alerts.toggle_wallet_alert(update, context, wallet_id, query.from_user.id)
+    elif data == "price:set_target":
+        await price_alert.prompt_set_target(update, context)
+    elif data == "price:report_on":
+        await price_alert.toggle_report(update, context)
     elif data == "admin:home":
         await admin.admin_panel(update, context)
     elif data == "admin:users":
         await query.message.reply_text("유저 ID 또는 username을 `/finduser <id_or_username>` 명령으로 검색하세요\\.", parse_mode="MarkdownV2")
+    elif data == "admin:payments":
+        await admin.list_payments(update, context)
+    elif data == "admin:settings":
+        await admin.show_settings(update, context)
+    elif data == "admin:halt":
+        await admin.toggle_halt(update, context)
+    elif data == "admin:broadcast":
+        await admin.prompt_broadcast(update, context)
     elif data == "admin:scam":
         await admin.list_scam_tokens(update, context)
+    elif data == "admin:scam_add":
+        await admin.prompt_scam_add(update, context)
+    elif data == "admin:scam_delete":
+        await admin.prompt_scam_delete(update, context)
+    elif data == "admin:scam_sync":
+        await admin.sync_scam_tokens(update, context)
     elif data == "admin:stats":
         await admin.full_stats(update, context)
     elif data.startswith("admin:grant_pro:"):
