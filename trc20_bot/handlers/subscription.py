@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 
 from config import OWNER_WALLET_ADDRESS, PRO_PLAN_USDT_PRICE
 from utils.formatter import escape_md
+from utils.respond import respond
 
 
 async def show_plan_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -15,5 +16,4 @@ async def show_plan_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "> 금액이 정확히 일치하지 않으면 승인되지 않습니다\\."
     )
     keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")]])
-    target = update.message or update.callback_query.message
-    await target.reply_text(text, parse_mode="MarkdownV2", reply_markup=keyboard)
+    await respond(update, text, keyboard)

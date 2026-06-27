@@ -34,6 +34,10 @@ async def _poll_one_wallet(bot: Bot, wallet) -> None:
     if not raw_txs:
         return
 
+    # First poll after registration: baseline silently so pre-existing history
+    # isn't replayed as fresh deposit/withdrawal alerts.
+    is_initial_baseline = wallet.last_tx_id is None
+
     async with get_session() as session:
         for tx in reversed(raw_txs):
             tx_id = tx.get("transaction_id", "")
@@ -65,7 +69,8 @@ async def _poll_one_wallet(bot: Bot, wallet) -> None:
             if recorded is None:
                 continue
 
-            await _send_alert(bot, wallet, direction, amount, from_address, to_address, tx_id, block_time, is_scam, token_info)
+            if not is_initial_baseline:
+                await _send_alert(bot, wallet, direction, amount, from_address, to_address, tx_id, block_time, is_scam, token_info)
 
 
 async def _send_alert(bot, wallet, direction, amount, from_address, to_address, tx_id, block_time, is_scam, token_info) -> None:

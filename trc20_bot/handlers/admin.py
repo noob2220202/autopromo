@@ -9,6 +9,7 @@ from config import ADMIN_IDS, PRO_PLAN_DAYS
 from db.engine import get_session
 from db.models import PlanPayment, PlanPaymentStatus, PlanType, ScamToken, Transaction, User, WalletAddress
 from utils.formatter import escape_md
+from utils.respond import respond
 from utils.validators import is_tron_address
 
 
@@ -17,8 +18,7 @@ def is_admin(telegram_id: int) -> bool:
 
 
 async def _reply(update: Update, text: str, keyboard: InlineKeyboardMarkup | None = None) -> None:
-    target = update.message or update.callback_query.message
-    await target.reply_text(text, parse_mode="MarkdownV2", reply_markup=keyboard)
+    await respond(update, text, keyboard)
 
 
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

@@ -5,13 +5,13 @@ from db import crud
 from db.engine import get_session
 from services import price
 from utils.formatter import escape_md
+from utils.respond import respond
 
 
 async def show_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     data = await price.get_usdt_price()
     if data is None:
-        target = update.message or update.callback_query.message
-        await target.reply_text("❌ 시세 조회에 실패했습니다\\.", parse_mode="MarkdownV2")
+        await respond(update, "❌ 시세 조회에 실패했습니다\\.")
         return
 
     telegram_id = update.effective_user.id
@@ -43,14 +43,12 @@ async def show_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             [InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")],
         ]
     )
-    target = update.message or update.callback_query.message
-    await target.reply_text("\n".join(lines), parse_mode="MarkdownV2", reply_markup=keyboard)
+    await respond(update, "\n".join(lines), keyboard)
 
 
 async def prompt_set_target(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     context.user_data["awaiting"] = "price_target"
-    target = update.message or update.callback_query.message
-    await target.reply_text("🟢 알림을 받을 목표가\\(USD\\)를 숫자로 입력해주세요\\.", parse_mode="MarkdownV2")
+    await respond(update, "🟢 알림을 받을 목표가\\(USD\\)를 숫자로 입력해주세요\\.")
 
 
 async def toggle_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -61,9 +59,8 @@ async def toggle_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         new_state = user.price_report_on
         await session.commit()
 
-    target = update.message or update.callback_query.message
     state_str = "켜졌습니다" if new_state else "꺼졌습니다"
-    await target.reply_text(f"🔵 1시간 리포트가 {state_str}\\.", parse_mode="MarkdownV2")
+    await respond(update, f"🔵 1시간 리포트가 {state_str}\\.")
 
 
 async def send_hourly_reports(bot) -> None:
@@ -105,10 +102,7 @@ async def set_price_target(update: Update, context: ContextTypes.DEFAULT_TYPE, t
         user.price_alert_target = target_price
         await session.commit()
 
-    message_target = update.message or update.callback_query.message
-    await message_target.reply_text(
-        f"🟢 목표가 알림이 설정되었습니다: ${escape_md(str(target_price))}", parse_mode="MarkdownV2"
-    )
+    await respond(update, f"🟢 목표가 알림이 설정되었습니다: ${escape_md(str(target_price))}")
 
 
 async def check_price_targets(bot) -> None:

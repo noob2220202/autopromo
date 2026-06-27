@@ -8,6 +8,7 @@ from db import crud
 from db.engine import get_session
 from db.models import Transaction, TxDirection, WalletAddress
 from utils.formatter import escape_md, format_amount
+from utils.respond import respond
 
 
 async def _wallet_ids(session, telegram_id: int) -> list[int]:
@@ -23,8 +24,7 @@ async def today_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     async with get_session() as session:
         wallet_ids = await _wallet_ids(session, telegram_id)
         if not wallet_ids:
-            target = update.message or update.callback_query.message
-            await target.reply_text("등록된 지갑이 없습니다\\.", parse_mode="MarkdownV2")
+            await respond(update, "등록된 지갑이 없습니다\\.")
             return
 
         result = await session.execute(
@@ -70,8 +70,7 @@ async def today_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             [InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")],
         ]
     )
-    target = update.message or update.callback_query.message
-    await target.reply_text("\n".join(lines), parse_mode="MarkdownV2", reply_markup=keyboard)
+    await respond(update, "\n".join(lines), keyboard)
 
 
 async def monthly_stats(update: Update, context: ContextTypes.DEFAULT_TYPE, year: int | None = None, month: int | None = None) -> None:
@@ -85,8 +84,7 @@ async def monthly_stats(update: Update, context: ContextTypes.DEFAULT_TYPE, year
     async with get_session() as session:
         wallet_ids = await _wallet_ids(session, telegram_id)
         if not wallet_ids:
-            target = update.message or update.callback_query.message
-            await target.reply_text("등록된 지갑이 없습니다\\.", parse_mode="MarkdownV2")
+            await respond(update, "등록된 지갑이 없습니다\\.")
             return
 
         result = await session.execute(
@@ -132,8 +130,7 @@ async def monthly_stats(update: Update, context: ContextTypes.DEFAULT_TYPE, year
             [InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")],
         ]
     )
-    target = update.message or update.callback_query.message
-    await target.reply_text("\n".join(lines), parse_mode="MarkdownV2", reply_markup=keyboard)
+    await respond(update, "\n".join(lines), keyboard)
 
 
 async def transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE, limit: int = 15) -> None:
@@ -142,8 +139,7 @@ async def transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE
     async with get_session() as session:
         wallet_ids = await _wallet_ids(session, telegram_id)
         if not wallet_ids:
-            target = update.message or update.callback_query.message
-            await target.reply_text("등록된 지갑이 없습니다\\.", parse_mode="MarkdownV2")
+            await respond(update, "등록된 지갑이 없습니다\\.")
             return
 
         result = await session.execute(
@@ -168,5 +164,4 @@ async def transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE
     lines.append("━━━━━━━━━━━━━━━━━")
 
     keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")]])
-    target = update.message or update.callback_query.message
-    await target.reply_text("\n".join(lines), parse_mode="MarkdownV2", reply_markup=keyboard)
+    await respond(update, "\n".join(lines), keyboard)

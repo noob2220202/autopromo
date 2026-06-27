@@ -9,6 +9,7 @@ from handlers import admin, alerts, price_alert, stats, subscription, wallet
 from handlers.auto_lookup import handle_text
 from handlers.start import ADMIN_MENU_KEYBOARD, USER_MENU_KEYBOARD, USER_MENU_TEXT, start
 from scheduler import setup_scheduler
+from utils.respond import respond
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -21,9 +22,9 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     if data == "menu:home":
         if admin.is_admin(query.from_user.id):
-            await query.message.reply_text("👑 *관리자 패널*", parse_mode="MarkdownV2", reply_markup=ADMIN_MENU_KEYBOARD)
+            await respond(update, "👑 *관리자 패널*", ADMIN_MENU_KEYBOARD)
         else:
-            await query.message.reply_text(USER_MENU_TEXT, parse_mode="MarkdownV2", reply_markup=USER_MENU_KEYBOARD)
+            await respond(update, USER_MENU_TEXT, USER_MENU_KEYBOARD)
     elif data == "menu:wallet":
         await wallet.show_wallets(update, context)
     elif data == "menu:stats":
@@ -35,14 +36,14 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     elif data == "menu:alerts":
         await alerts.show_alerts_menu(update, context)
     elif data == "menu:help":
-        await query.message.reply_text(
+        await respond(
+            update,
             "❓ *도움말*\n━━━━━━━━━━━━━━━━━\n\n"
             "📍 트론 주소를 채팅창에 입력하면 잔액/거래내역을 즉시 조회합니다\\.\n"
             "💼 *내 지갑*에서 알림 받을 주소를 등록하세요\\.\n"
             "📊 *통계*에서 일별/월별 입출금 현황을 확인하세요\\.\n"
             "📈 *시세*에서 목표가 알림과 정기 리포트를 설정하세요\\.\n"
             "💳 *플랜 관리*에서 Pro 플랜으로 업그레이드하세요\\.",
-            parse_mode="MarkdownV2",
         )
     elif data == "stats:monthly":
         await stats.monthly_stats(update, context)
@@ -73,7 +74,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     elif data == "admin:home":
         await admin.admin_panel(update, context)
     elif data == "admin:users":
-        await query.message.reply_text("유저 ID 또는 username을 `/finduser <id_or_username>` 명령으로 검색하세요\\.", parse_mode="MarkdownV2")
+        await respond(update, "유저 ID 또는 username을 `/finduser <id_or_username>` 명령으로 검색하세요\\.")
     elif data == "admin:payments":
         await admin.list_payments(update, context)
     elif data == "admin:settings":
