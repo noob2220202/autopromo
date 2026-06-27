@@ -32,13 +32,13 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         scam_tokens = (await session.execute(select(func.count(ScamToken.id)))).scalar_one()
 
     text = (
-        "👑 *관리자 패널*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        "👑 *관리자 패널*\n━━━━━━━━━━━━━━━━━\n\n"
         "📊 현재 현황:\n"
         f"👥 전체 유저: *{total_users}명*\n"
         f"💎 Pro 유저:  *{pro_users}명*\n"
         f"💼 등록 지갑: *{total_wallets}개*\n"
         f"🚨 스캠 토큰: *{scam_tokens}개* 등록됨\n\n"
-        "━━━━━━━━━━━━━━━━━━━━"
+        "━━━━━━━━━━━━━━━━━"
     )
     keyboard = InlineKeyboardMarkup(
         [
@@ -74,13 +74,13 @@ async def search_user(update: Update, context: ContextTypes.DEFAULT_TYPE, query:
     expires = user.plan_expires_at.strftime("%Y-%m-%d") if user.plan_expires_at else "-"
     created = user.created_at.strftime("%Y-%m-%d")
     text = (
-        "👤 *유저 정보*\n━━━━━━━━━━━━━━━━━━━━\n"
+        "👤 *유저 정보*\n━━━━━━━━━━━━━━━━━\n"
         f"🆔 ID: `{user.telegram_id}`\n"
         f"📛 Username: @{escape_md(user.username or '-')}\n"
         f"👑 플랜: *{user.plan.value.capitalize()}* \\(~{escape_md(expires)}\\)\n"
         f"💼 등록 주소: {wallet_count}개\n"
         f"📅 가입일: _{escape_md(created)}_\n"
-        "━━━━━━━━━━━━━━━━━━━━"
+        "━━━━━━━━━━━━━━━━━"
     )
     keyboard = InlineKeyboardMarkup(
         [
@@ -139,10 +139,10 @@ async def list_scam_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         result = await session.execute(select(ScamToken).order_by(ScamToken.id))
         tokens = list(result.scalars().all())
 
-    lines = ["🚨 *스캠 토큰 DB*", "━━━━━━━━━━━━━━━━━━━━", f"총 *{len(tokens)}개* 등록됨", ""]
+    lines = ["🚨 *스캠 토큰 DB*", "━━━━━━━━━━━━━━━━━", f"총 *{len(tokens)}개* 등록됨", ""]
     for idx, token in enumerate(tokens[:20], start=1):
         lines.append(f"{idx}\\. `{token.contract_address}` — {escape_md(token.token_name or '-')}")
-    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    lines.append("━━━━━━━━━━━━━━━━━")
 
     keyboard = InlineKeyboardMarkup(
         [
@@ -161,7 +161,7 @@ async def list_payments(update: Update, context: ContextTypes.DEFAULT_TYPE, limi
         result = await session.execute(select(PlanPayment).order_by(PlanPayment.created_at.desc()).limit(limit))
         payments = list(result.scalars().all())
 
-    lines = ["💳 *결제 내역*", "━━━━━━━━━━━━━━━━━━━━", ""]
+    lines = ["💳 *결제 내역*", "━━━━━━━━━━━━━━━━━", ""]
     if not payments:
         lines.append("결제 내역이 없습니다\\.")
     for payment in payments:
@@ -171,7 +171,7 @@ async def list_payments(update: Update, context: ContextTypes.DEFAULT_TYPE, limi
         )
         lines.append(f"   _{escape_md(payment.created_at.strftime('%Y-%m-%d %H:%M'))}_ — `{payment.tx_id[:16]}…`")
         lines.append("")
-    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    lines.append("━━━━━━━━━━━━━━━━━")
 
     keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("◀ 관리자 메인", callback_data="admin:home")]])
     await _reply(update, "\n".join(lines), keyboard)
@@ -190,14 +190,14 @@ async def show_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     halt_state = "🔴 정지됨" if runtime_state.is_halted() else "🟢 정상 운영"
     text = (
-        "⚙️ *봇 설정*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        "⚙️ *봇 설정*\n━━━━━━━━━━━━━━━━━\n\n"
         f"📡 폴링 주기: *{POLL_INTERVAL_SECONDS}초*\n"
         f"📈 시세 체크 주기: *{PRICE_CHECK_INTERVAL_SECONDS}초*\n"
         f"💎 Pro 플랜 가격: *{escape_md(str(PRO_PLAN_USDT_PRICE))} USDT*\n"
         f"📅 Pro 플랜 기간: *{PRO_PLAN_DAYS}일*\n"
         f"🏦 오너 지갑: `{OWNER_WALLET_ADDRESS}`\n"
         f"🚦 봇 상태: *{halt_state}*\n"
-        "━━━━━━━━━━━━━━━━━━━━"
+        "━━━━━━━━━━━━━━━━━"
     )
     keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("◀ 관리자 메인", callback_data="admin:home")]])
     await _reply(update, text, keyboard)
@@ -316,7 +316,7 @@ async def full_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     pro_ratio = (pro_users / total_users * 100) if total_users else 0
     text = (
-        "📊 *서비스 전체 통계*\n━━━━━━━━━━━━━━━━━━━━\n"
+        "📊 *서비스 전체 통계*\n━━━━━━━━━━━━━━━━━\n"
         f"_{escape_md(now.strftime('%Y-%m-%d'))} 기준_\n\n"
         "👥 *유저*\n"
         f"  전체: *{total_users}명*\n"
@@ -330,6 +330,6 @@ async def full_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         "🚨 *스캠*\n"
         f"  오늘 감지: *{scam_today}건*\n"
         f"  누적 차단: *{scam_total}건*\n"
-        "━━━━━━━━━━━━━━━━━━━━"
+        "━━━━━━━━━━━━━━━━━"
     )
     await _reply(update, text)

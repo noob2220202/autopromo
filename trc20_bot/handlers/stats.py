@@ -49,11 +49,11 @@ async def today_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     lines = [
         "📊 *오늘 통계*",
         f"_{escape_md(now.strftime('%Y-%m-%d'))} KST 기준_",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         "",
         f"📥 *총 입금*   \\+{escape_md(format_amount(deposit_total))} USDT _\\({len(deposits)}건\\)_",
         f"📤 *총 출금*   \\-{escape_md(format_amount(withdrawal_total))} USDT _\\({len(withdrawals)}건\\)_",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         f"💰 *순증감*    {escape_md(format_amount(deposit_total - withdrawal_total, sign=True))} USDT",
         "",
         f"📈 *최대 단건 입금*  \\+{escape_md(format_amount(max_deposit))} USDT",
@@ -61,7 +61,7 @@ async def today_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         f"📐 *입금 평균*       \\+{escape_md(format_amount(avg_deposit))} USDT",
         "",
         f"⚠️ _스캠 토큰 거래: {scam_count}건 감지됨_",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
     ]
 
     keyboard = InlineKeyboardMarkup(
@@ -106,7 +106,7 @@ async def monthly_stats(update: Update, context: ContextTypes.DEFAULT_TYPE, year
 
     lines = [
         f"📅 *{year}년 {month}월 통계*",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         "",
         f"📥 *총 입금*   \\+{escape_md(format_amount(deposit_total))} USDT _\\({len(deposits)}건\\)_",
         f"📤 *총 출금*   \\-{escape_md(format_amount(withdrawal_total))} USDT _\\({len(withdrawals)}건\\)_",
@@ -118,7 +118,7 @@ async def monthly_stats(update: Update, context: ContextTypes.DEFAULT_TYPE, year
             f"🏆 *최대 단건*  {escape_md(format_amount(float(max_tx.amount_usdt), sign=True))} USDT "
             f"_\\({escape_md(max_tx.block_timestamp.strftime('%m-%d'))}\\)_"
         )
-    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    lines.append("━━━━━━━━━━━━━━━━━")
 
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
     next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
@@ -154,7 +154,7 @@ async def transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         txs = list(result.scalars().all())
 
-    lines = ["📋 *최근 거래내역*", "━━━━━━━━━━━━━━━━━━━━", ""]
+    lines = ["📋 *최근 거래내역*", "━━━━━━━━━━━━━━━━━", ""]
     if not txs:
         lines.append("거래 내역이 없습니다\\.")
     for tx in txs:
@@ -165,7 +165,7 @@ async def transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE
         if tx.is_scam_token:
             lines.append("   ⚠️ 스캠 토큰 의심")
         lines.append("")
-    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    lines.append("━━━━━━━━━━━━━━━━━")
 
     keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")]])
     target = update.message or update.callback_query.message

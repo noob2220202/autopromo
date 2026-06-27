@@ -50,12 +50,12 @@ def scam_warning_block(token_name: str, contract_address: str) -> str:
 def wallet_summary(address: str, balance: float, transactions: list[dict]) -> str:
     lines = [
         "💼 *지갑 조회 결과*",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         "",
         f"📍 `{address}`",
         f"💰 *잔액: {escape_md(format_amount(balance))} USDT*",
         "",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         f"📋 *최근 거래 \\({len(transactions)}건\\)*",
         "",
     ]
@@ -72,7 +72,7 @@ def wallet_summary(address: str, balance: float, transactions: list[dict]) -> st
         if tx.get("is_scam_token"):
             lines.append("> ⚠️ *스캠 토큰 감지* 1건 — 아래 참고")
         lines.append("")
-    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    lines.append("━━━━━━━━━━━━━━━━━")
     return "\n".join(lines)
 
 
@@ -80,7 +80,7 @@ def deposit_alert(label: str, address: str, amount: float, from_address: str, tx
     return "\n".join(
         [
             "🟢 *USDT 입금 알림*",
-            "━━━━━━━━━━━━━━━━━━━━",
+            "━━━━━━━━━━━━━━━━━",
             "",
             f"💼 *{escape_md(label)}* \\(`{short_address(address)}`\\)",
             f"📥 *\\+{escape_md(format_amount(amount))} USDT* 받음",
@@ -90,7 +90,7 @@ def deposit_alert(label: str, address: str, amount: float, from_address: str, tx
             f"📅 _{escape_md(format_datetime_kst(block_timestamp))}_",
             f"🔗 `{tx_id}`",
             "",
-            "━━━━━━━━━━━━━━━━━━━━",
+            "━━━━━━━━━━━━━━━━━",
             "✅ 정상 USDT 토큰 확인됨",
         ]
     )
@@ -102,7 +102,7 @@ def withdrawal_alert(
     return "\n".join(
         [
             "🔴 *USDT 출금 알림*",
-            "━━━━━━━━━━━━━━━━━━━━",
+            "━━━━━━━━━━━━━━━━━",
             "",
             f"💼 *{escape_md(label)}* \\(`{short_address(address)}`\\)",
             f"📤 *\\-{escape_md(format_amount(amount))} USDT* 전송",
@@ -113,6 +113,6 @@ def withdrawal_alert(
             f"📅 _{escape_md(format_datetime_kst(block_timestamp))}_",
             f"🔗 `{tx_id}`",
             "",
-            "━━━━━━━━━━━━━━━━━━━━",
+            "━━━━━━━━━━━━━━━━━",
         ]
     )

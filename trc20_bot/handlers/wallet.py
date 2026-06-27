@@ -24,7 +24,7 @@ async def show_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     limit = _limit_for_plan(plan)
     lines = [
         "💼 *내 등록 지갑*",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         f"👤 플랜: *{plan.value.capitalize()}* \\| 사용 {len(wallets)} / {limit}",
         "",
     ]
@@ -39,7 +39,7 @@ async def show_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             f"   {status}",
             "",
         ]
-    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    lines.append("━━━━━━━━━━━━━━━━━")
 
     buttons = [[InlineKeyboardButton("🟢 주소 추가", callback_data="wallet:prompt_add")]]
     for idx, wallet in enumerate(wallets, start=1):
@@ -125,11 +125,11 @@ async def wallet_detail(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
     label = wallet.label or "지갑"
     status = "🟢 알림 활성" if wallet.is_active else "🔴 알림 비활성"
     text = (
-        f"🔵 *{escape_md(label)} 상세정보*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"🔵 *{escape_md(label)} 상세정보*\n━━━━━━━━━━━━━━━━━\n\n"
         f"📍 `{wallet.address}`\n"
         f"💰 *잔액: {escape_md(format_amount(balance))} USDT*\n"
         f"{status}\n"
-        "━━━━━━━━━━━━━━━━━━━━"
+        "━━━━━━━━━━━━━━━━━"
     )
     keyboard = InlineKeyboardMarkup(
         [

@@ -36,7 +36,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await alerts.show_alerts_menu(update, context)
     elif data == "menu:help":
         await query.message.reply_text(
-            "❓ *도움말*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+            "❓ *도움말*\n━━━━━━━━━━━━━━━━━\n\n"
             "📍 트론 주소를 채팅창에 입력하면 잔액/거래내역을 즉시 조회합니다\\.\n"
             "💼 *내 지갑*에서 알림 받을 주소를 등록하세요\\.\n"
             "📊 *통계*에서 일별/월별 입출금 현황을 확인하세요\\.\n"

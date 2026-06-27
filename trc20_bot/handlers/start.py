@@ -38,7 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if telegram_id in ADMIN_IDS:
         await update.message.reply_text(
-            "👑 *관리자 패널*\n━━━━━━━━━━━━━━━━━━━━",
+            "👑 *관리자 패널*\n━━━━━━━━━━━━━━━━━",
             parse_mode="MarkdownV2",
             reply_markup=ADMIN_MENU_KEYBOARD,
         )

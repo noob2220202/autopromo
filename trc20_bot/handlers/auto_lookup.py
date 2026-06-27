@@ -110,7 +110,7 @@ async def _handle_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE, tx
             return
 
     await update.message.reply_text(
-        "✅ *Pro 플랜 활성화 완료\\!*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        "✅ *Pro 플랜 활성화 완료\\!*\n━━━━━━━━━━━━━━━━━\n\n"
         f"🎉 업그레이드를 축하드립니다\\!\n\n"
         f"👑 *현재 플랜:* Pro\n"
         f"📍 *주소 한도:* 최대 5개\n"

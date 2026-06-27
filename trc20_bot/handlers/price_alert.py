@@ -26,14 +26,14 @@ async def show_price(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     lines = [
         "📈 *USDT 현재 시세*",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         "",
         f"💵 USD  *${escape_md(usd_str)}*",
         f"🇰🇷 KRW  *₩{escape_md(krw_str)}*",
         "",
         f"📊 24h 변동: _{escape_md(change_str)}%_",
         "",
-        "━━━━━━━━━━━━━━━━━━━━",
+        "━━━━━━━━━━━━━━━━━",
         f"🔔 시세 알림: *{alert_state}*",
     ]
 
@@ -80,7 +80,7 @@ async def send_hourly_reports(bot) -> None:
     usd_str = f"{data['usd']:.3f}"
     krw_str = f"{data['krw']:,.1f}"
     text = (
-        "📈 *1시간 정기 리포트*\n━━━━━━━━━━━━━━━━━━━━\n\n"
+        "📈 *1시간 정기 리포트*\n━━━━━━━━━━━━━━━━━\n\n"
         f"💵 USD  *${escape_md(usd_str)}*\n"
         f"🇰🇷 KRW  *₩{escape_md(krw_str)}*\n"
         f"📊 24h 변동: _{escape_md(change_str)}%_"
