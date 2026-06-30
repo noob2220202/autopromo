@@ -19,6 +19,13 @@ OWNER_WALLET_ADDRESS = os.environ["OWNER_WALLET_ADDRESS"]
 PRO_PLAN_USDT_PRICE = float(os.environ.get("PRO_PLAN_USDT_PRICE", "5.0"))
 PRO_PLAN_DAYS = int(os.environ.get("PRO_PLAN_DAYS", "30"))
 
+PLAN_1M_PRICE = float(os.environ.get("PLAN_1M_PRICE", "20.0"))
+PLAN_3M_PRICE = float(os.environ.get("PLAN_3M_PRICE", "55.0"))
+PLAN_12M_PRICE = float(os.environ.get("PLAN_12M_PRICE", "200.0"))
+
+SUPPORT_USERNAME = os.environ.get("SUPPORT_USERNAME", "@admin")
+BOT_DISPLAY_NAME = os.environ.get("BOT_DISPLAY_NAME", "ROYAL CLUB USDT 모니터링 봇")
+
 POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "60"))
 PRICE_CHECK_INTERVAL_SECONDS = int(os.environ.get("PRICE_CHECK_INTERVAL_SECONDS", "300"))
 

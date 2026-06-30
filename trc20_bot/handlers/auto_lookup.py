@@ -31,6 +31,18 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def _handle_awaiting(update: Update, context: ContextTypes.DEFAULT_TYPE, awaiting: str, text: str) -> None:
     from handlers import admin, price_alert
 
+    if awaiting == "settings_min":
+        from handlers import settings as settings_handler
+        try:
+            amount = float(text)
+            if amount < 0:
+                raise ValueError
+        except ValueError:
+            await update.message.reply_text("❌ 0 이상의 숫자로 입력해주세요.")
+            return
+        await settings_handler.set_min_amount(update, context, amount)
+        return
+
     if awaiting == "price_target":
         try:
             target_price = float(text)
@@ -88,8 +100,8 @@ async def _handle_address(update: Update, context: ContextTypes.DEFAULT_TYPE, ad
 
     keyboard = InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("🔵 더 보기", callback_data=f"lookup:more:{address}"), InlineKeyboardButton("🟢 이 주소 등록", callback_data=f"wallet:add:{address}")],
             [InlineKeyboardButton("🔗 TronScan에서 보기", url=f"https://tronscan.org/#/address/{address}")],
+            [InlineKeyboardButton("◀ 메인 메뉴", callback_data="menu:home")],
         ]
     )
     await update.message.reply_text(

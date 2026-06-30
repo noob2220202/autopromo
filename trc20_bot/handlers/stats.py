@@ -46,29 +46,26 @@ async def today_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     min_deposit = min(deposit_amounts) if deposit_amounts else 0
     avg_deposit = sum(deposit_amounts) / len(deposit_amounts) if deposit_amounts else 0
 
+    net = deposit_total - withdrawal_total
+    date_kst = now.strftime("%Y-%m-%d")
     lines = [
-        "📊 *오늘 통계*",
-        f"_{escape_md(now.strftime('%Y-%m-%d'))} KST 기준_",
-        "━━━━━━━━━━━━━━━━━",
+        "📊 오늘의 통계",
         "",
-        f"📥 *총 입금*   \\+{escape_md(format_amount(deposit_total))} USDT _\\({len(deposits)}건\\)_",
-        f"📤 *총 출금*   \\-{escape_md(format_amount(withdrawal_total))} USDT _\\({len(withdrawals)}건\\)_",
-        "━━━━━━━━━━━━━━━━━",
-        f"💰 *순증감*    {escape_md(format_amount(deposit_total - withdrawal_total, sign=True))} USDT",
+        f"💰 총 입금: {format_amount(deposit_total)} USDT",
+        f"💸 총 출금: {format_amount(withdrawal_total)} USDT",
+        f"📈 순이익: {format_amount(net)} USDT",
         "",
-        f"📈 *최대 단건 입금*  \\+{escape_md(format_amount(max_deposit))} USDT",
-        f"📉 *최소 단건 입금*  \\+{escape_md(format_amount(min_deposit))} USDT",
-        f"📐 *입금 평균*       \\+{escape_md(format_amount(avg_deposit))} USDT",
+        f"📥 입금 횟수: {len(deposits)}회",
+        f"📤 출금 횟수: {len(withdrawals)}회",
+        f"🔄 총 거래: {len(txs)}건",
         "",
-        f"⚠️ _스캠 토큰 거래: {scam_count}건 감지됨_",
-        "━━━━━━━━━━━━━━━━━",
+        f"📅 날짜: {date_kst}",
     ]
+    if scam_count:
+        lines.append(f"⚠️ 스캠 토큰 감지: {scam_count}건")
 
     keyboard = InlineKeyboardMarkup(
-        [
-            [InlineKeyboardButton("🔵 이번 달 통계", callback_data="stats:monthly"), InlineKeyboardButton("🔵 거래내역 보기", callback_data="stats:history")],
-            [InlineKeyboardButton("🏠 메인으로", callback_data="menu:home")],
-        ]
+        [[InlineKeyboardButton("◀ 메인 메뉴", callback_data="menu:home")]]
     )
     await respond(update, "\n".join(lines), keyboard)
 

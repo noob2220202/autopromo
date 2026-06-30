@@ -49,6 +49,8 @@ class User(Base):
     price_alert_target: Mapped[float | None] = mapped_column(Numeric(20, 6), nullable=True)
     price_report_on: Mapped[bool] = mapped_column(Boolean, default=False)
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
+    alerts_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    min_alert_amount: Mapped[float] = mapped_column(Numeric(20, 6), default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     wallets: Mapped[list["WalletAddress"]] = relationship(back_populates="user")

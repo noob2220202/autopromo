@@ -70,6 +70,12 @@ async def _poll_one_wallet(bot: Bot, wallet) -> None:
                 continue
 
             if not is_initial_baseline:
+                async with get_session() as user_session:
+                    user = await crud.get_or_create_user(user_session, wallet.telegram_id, None)
+                    if not user.alerts_enabled:
+                        continue
+                    if amount < float(user.min_alert_amount):
+                        continue
                 await _send_alert(bot, wallet, direction, amount, from_address, to_address, tx_id, block_time, is_scam, token_info)
 
 

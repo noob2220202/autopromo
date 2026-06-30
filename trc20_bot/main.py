@@ -1,13 +1,15 @@
 import logging
 
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
 
-from config import TELEGRAM_BOT_TOKEN
+from config import SUPPORT_USERNAME, TELEGRAM_BOT_TOKEN
 from db.engine import init_db
-from handlers import admin, alerts, price_alert, stats, subscription, wallet
+from handlers import admin, price_alert, stats, subscription, wallet
+from handlers import settings as settings_handler
+from handlers.alerts import toggle_wallet_alert
 from handlers.auto_lookup import handle_text
-from handlers.start import ADMIN_MENU_KEYBOARD, USER_MENU_KEYBOARD, USER_MENU_TEXT, start
+from handlers.start import ADMIN_MENU_KEYBOARD, MAIN_KEYBOARD, main_menu_text, start
 from scheduler import setup_scheduler
 from utils.respond import respond
 
@@ -22,29 +24,48 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     if data == "menu:home":
         if admin.is_admin(query.from_user.id):
-            await respond(update, "👑 *관리자 패널*", ADMIN_MENU_KEYBOARD)
+            await respond(update, "👑 *관리자 패널*\n━━━━━━━━━━━━━━━━━\n_아래에서 관리 기능을 선택하세요\\._", ADMIN_MENU_KEYBOARD)
         else:
-            await respond(update, USER_MENU_TEXT, USER_MENU_KEYBOARD)
-    elif data == "menu:wallet":
-        await wallet.show_wallets(update, context)
+            await respond(update, main_menu_text(), MAIN_KEYBOARD)
     elif data == "menu:stats":
         await stats.today_stats(update, context)
-    elif data == "menu:price":
-        await price_alert.show_price(update, context)
+    elif data == "menu:monthly":
+        await stats.monthly_stats(update, context)
+    elif data == "menu:wallet":
+        await wallet.show_wallets(update, context)
+    elif data == "menu:add_wallet":
+        await wallet.show_add_wallet_guide(update, context)
+    elif data == "menu:settings":
+        await settings_handler.show_settings_menu(update, context)
     elif data == "menu:plan":
         await subscription.show_plan_menu(update, context)
+    elif data == "menu:customer":
+        await respond(
+            update,
+            f"📞 고객센터\n\n문의 및 이용 안내:\n{SUPPORT_USERNAME}\n\n운영 시간: 24시간 문의 가능",
+            InlineKeyboardMarkup([[InlineKeyboardButton("◀ 메인 메뉴", callback_data="menu:home")]]),
+        )
+    elif data == "menu:affiliate":
+        await respond(
+            update,
+            "🤝 제휴업체 목록\n\n현재 등록된 제휴업체가 없습니다.\n\n제휴 문의는 고객센터로 연락해주세요.",
+            InlineKeyboardMarkup([[InlineKeyboardButton("◀ 메인 메뉴", callback_data="menu:home")]]),
+        )
     elif data == "menu:alerts":
-        await alerts.show_alerts_menu(update, context)
+        from handlers.alerts import show_alerts_menu
+        await show_alerts_menu(update, context)
+    elif data == "menu:price":
+        await price_alert.show_price(update, context)
     elif data == "menu:help":
         await respond(
             update,
-            "❓ *도움말*\n━━━━━━━━━━━━━━━━━\n\n"
-            "📍 트론 주소를 채팅창에 입력하면 잔액/거래내역을 즉시 조회합니다\\.\n"
-            "💼 *내 지갑*에서 알림 받을 주소를 등록하세요\\.\n"
-            "📊 *통계*에서 일별/월별 입출금 현황을 확인하세요\\.\n"
-            "📈 *시세*에서 목표가 알림과 정기 리포트를 설정하세요\\.\n"
-            "💳 *플랜 관리*에서 Pro 플랜으로 업그레이드하세요\\.",
+            "❓ 도움말\n\n"
+            "/p [지갑주소] — 지갑 등록\n"
+            "/d [지갑주소] — 지갑 삭제\n"
+            "주소를 채팅에 입력하면 즉시 잔액/거래내역 조회",
+            InlineKeyboardMarkup([[InlineKeyboardButton("◀ 메인 메뉴", callback_data="menu:home")]]),
         )
+
     elif data == "stats:monthly":
         await stats.monthly_stats(update, context)
     elif data.startswith("stats:monthly:"):
@@ -53,24 +74,37 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await stats.monthly_stats(update, context, year=int(year_str), month=int(month_str))
     elif data == "stats:history":
         await stats.transaction_history(update, context)
-    elif data.startswith("wallet:add:"):
-        address = data.split(":", 2)[2]
-        await wallet.add_wallet_from_address(update, context, address)
+
+    elif data.startswith("wallet:detail:"):
+        wallet_id = int(data.split(":")[2])
+        await wallet.wallet_detail(update, context, wallet_id)
     elif data.startswith("wallet:delete:"):
         wallet_id = int(data.split(":")[2])
         await wallet.delete_wallet(update, context, wallet_id)
     elif data == "wallet:prompt_add":
-        await wallet.prompt_add_wallet(update, context)
-    elif data.startswith("wallet:detail:"):
-        wallet_id = int(data.split(":")[2])
-        await wallet.wallet_detail(update, context, wallet_id)
+        await wallet.show_add_wallet_guide(update, context)
+
+    elif data == "settings:toggle":
+        await settings_handler.toggle_alerts(update, context)
+    elif data == "settings:set_min":
+        await settings_handler.prompt_set_min(update, context)
+
+    elif data.startswith("plan:select:"):
+        plan_id = data.split(":", 2)[2]
+        await subscription.show_plan_payment(update, context, plan_id)
+    elif data.startswith("plan:check:"):
+        plan_id = data.split(":", 2)[2]
+        await subscription.check_payment(update, context, plan_id)
+
     elif data.startswith("alerts:toggle:"):
         wallet_id = int(data.split(":")[2])
-        await alerts.toggle_wallet_alert(update, context, wallet_id, query.from_user.id)
+        await toggle_wallet_alert(update, context, wallet_id, query.from_user.id)
+
     elif data == "price:set_target":
         await price_alert.prompt_set_target(update, context)
     elif data == "price:report_on":
         await price_alert.toggle_report(update, context)
+
     elif data == "admin:home":
         await admin.admin_panel(update, context)
     elif data == "admin:users":
@@ -140,7 +174,8 @@ def main() -> None:
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(on_startup).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("wallet", wallet.show_wallets))
+    application.add_handler(CommandHandler("p", wallet.add_wallet_command))
+    application.add_handler(CommandHandler("d", wallet.delete_wallet_command))
     application.add_handler(CommandHandler("today", stats.today_stats))
     application.add_handler(CommandHandler("monthly", stats.monthly_stats))
     application.add_handler(CommandHandler("price", price_alert.show_price))
@@ -151,8 +186,6 @@ def main() -> None:
     application.add_handler(CommandHandler("broadcast", broadcast_command))
 
     application.add_handler(CallbackQueryHandler(menu_callback))
-
-    # Address/TX-hash auto-detect must be registered before any generic text handler.
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
